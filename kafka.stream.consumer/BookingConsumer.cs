@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using Confluent.Kafka;
 using Confluent.Kafka.Serialization;
-using Microsoft.Extensions.Logging;
+
+
 
 namespace kafka.stream.consumer
 {
     public class BookingConsumer : IBookingConsumer
     {
-        private readonly ILogger _logger;
+
 
         public void Listen(Action<string> message)
         {
-         
+
 
             var config = new Dictionary<string, object>
             {
@@ -27,20 +27,30 @@ namespace kafka.stream.consumer
             using (var consumer = new Consumer<Null, string>(config, null, new StringDeserializer(Encoding.UTF8)))
             {
                 consumer.Subscribe("timemanagement_booking");
+                TimerExpo.Start();
 
                 consumer.OnMessage += (_, msg) =>
                 {
-                    Stopwatch sw = Stopwatch.StartNew();
+                    TimerExpo.Start();
 
+                    // burada cache başlatılacak 10 dakika sonra timer ile cache de tutalanlar log dosyasına yazılacak
+                    message(msg.Value);
                     // Message Başaldığı andan itibaren sayç başlayacak eğerki mesaj içeriği toplam 10dakikaya ulaşınca log dosyasına 10 dakikadan itibaaren loga tüm düşürülen istekler yazılacak.
-                   
-                        message(msg.Value);
+                    // Part 3: call PrintTimes every 3 seconds.
+                    while (true)
+                    {
+                        System.Threading.Thread.Sleep(5000);
+
+                    }
+
 
                 };
                 while (true)
                 {
                     //time out süresi 
                     consumer.Poll(100);
+
+
                 }
             };
 
